@@ -39,6 +39,14 @@ Code comments :
 
             http://flask.pocoo.org/docs/deploying/
 
+        2. <nitin> : QR Code generation in python : https://pypi.org/project/PyQRCode/
+
+                Create an SVG based on transaction id
+                Store SVG with name transaction_id.svg in the transactions_dir
+                send the image through HTTP response
+
+
+
 
 '''
 
@@ -55,8 +63,7 @@ if len(sys.argv) != 3:
 
 from flask import Flask, jsonify, redirect, url_for, request
 import os
-import subprocess
-
+import pyqrcode
 '''******************************     IMPORTS     ******************************'''
 
 
@@ -74,6 +81,11 @@ import subprocess
 '''******************************     SETUP AND GLOBALS     ******************************p'''
 
 app = Flask('vwe_server')
+
+# Hack instead of using db
+storage_dir = os.getcwd() + "/Storage/" # ../../whatever/VWE/Storage
+merchant_dir = storage_dir + "merchants/"
+transactions_dir = storage_dir + "transactions/"
 
 '''******************************     SETUP AND GLOBALS     ******************************p'''
 
@@ -93,6 +105,23 @@ app = Flask('vwe_server')
 
 '''******************************     UTILITY FUNCTIONS     ******************************p'''
 
+def checkMerchantStatus(merchantId):
+    if not os.path.isfile(merchant_dir+merchantId):
+        return False
+    return True
+
+def generateGUID():
+    # TODO
+    pass
+
+def storeTransaction(uniqueGUID,merchantId,items_list):
+    # TODO
+    pass
+
+
+def generateQR(uniqueGUID):
+    # TODO : check documentation
+    pass
 
 '''******************************     UTILITY FUNCTIONS     ******************************p'''
 
@@ -124,6 +153,40 @@ def help():
     response["status"] = "success"
     response["response"] = " 1. GET /help for options "
     return jsonify(response)
+
+
+# STEP 1
+# recieves a json object with items/amounts, creates a transaction entry, returns QR code
+@app.route('/registerTransaction/<string:merchantId>', methods = ['POST'])
+def registerTransaction(merchantId):
+    response = {}
+
+    # Check for merchant existance and permissions
+    if not checkMerchantStatus(merchantId):
+        response["status"] = False
+        return jsonify(response)
+
+    items_list = request.get_json()
+    print "Transaction registration recieved : " + str(items_list)
+
+    # generate unique transaction id (GUID)
+    uniqueGUID = generateGUID()
+
+    # create a file in the transactions_dir with the required details and name it with transaction id
+    storeTransaction(uniqueGUID,merchantId,items_list)
+
+    # generate QR code with transaction id from previous step (image https://pypi.org/project/PyQRCode/)
+    # store QR image in transaction_dir
+    generateQR(uniqueGUID)
+
+    # wrap image in response and return it
+    # TODO
+
+    response["status"] = True
+    return jsonify(response)
+
+
+
 
 '''******************************     MAIN FUNCTIONALITY     ******************************p'''
 
