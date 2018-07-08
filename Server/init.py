@@ -121,7 +121,8 @@ def storeTransaction(uniqueGUID,merchantId,items_list):
 
 def generateQR(uniqueGUID):
     # TODO : check documentation
-    pass
+    qr = pyqrcode.create(uniqueGUID)
+    qr.svg(transactions_dir+uniqueGUID+".svg", scale=8)
 
 '''******************************     UTILITY FUNCTIONS     ******************************p'''
 
